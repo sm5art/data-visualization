@@ -1,11 +1,18 @@
 'use strict';
 
-var React = require('react');
-var ReactDOM = require('react-dom');
-var d3 = require('d3');
+import React from 'react';
+import ReactDOM from 'react-dom';
+import d3 from 'd3';
 
-const nodes = [{group:"a"},{group:"b"},{group:"c"}];
-const links = [{source:"a",target:"b"},{source:"b",target:"c"},{source:"a",target:"c"}]
+let nodes = [];
+let links = [];
+for(var i = 0; i < 20; i++){
+    nodes.push({group:String.fromCharCode(i)})
+    links.push({source:i,target:Math.floor(Math.random()*20)})
+}
+
+
+
 
 class ForceLayout extends React.Component {
   componentDidMount() {
@@ -29,7 +36,7 @@ class ForceLayout extends React.Component {
       .data(nodes)
       .enter()
       .append('circle')
-      .attr('r',5)
+      .attr('r',15)
       .style('stroke','#FFFFFF')
       .style('stroke-width',1.5)
       .style('fill',(d) => color(d.group))
@@ -56,6 +63,6 @@ class ForceLayout extends React.Component {
 }
 
 ReactDOM.render(
-  <ForceLayout width = {300} height = {300}/>,
-  document.querySelector('#root')
+  <ForceLayout width = {$(window).width()} height = {$(window).height()}/>,
+  document.getElementById('root')
 );
