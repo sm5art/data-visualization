@@ -1,9 +1,5 @@
 'use strict';
 
-import React from 'react';
-import ReactDOM from 'react-dom';
-import d3 from 'd3';
-
 let nodes = [];
 let links = [];
 for(var i = 0; i < 20; i++){
@@ -36,15 +32,30 @@ class ForceLayout extends React.Component {
       .data(nodes)
       .enter()
       .append('circle')
-      .attr('r',15)
+      .attr('r',(d)=>{
+        return d.group.charCodeAt(0);
+      })
       .style('stroke','#FFFFFF')
       .style('stroke-width',1.5)
-      .style('fill',(d) => color(d.group))
+      .style('fill',(d) => color(d.group));
+
+      const link = svg.selectAll('line')
+        .data(links)
+        .enter()
+        .append('line')
+        .style('stroke',(d) => color(d.source))
+        .style('stroke-width',3)
 
     force.on('tick', () => {
       node
-      .attr('cx',(d) => d.x)
-      .attr('cy',(d) => d.y)
+        .attr('cx',(d) => d.x)
+        .attr('cy',(d) => d.y);
+
+      link
+        .attr('x1', (d) => {return d.source.x;})
+        .attr('y1', (d) => {return d.source.y;})
+        .attr('x2', (d) => {return d.target.x;})
+        .attr('y2', (d) => {return d.target.y;});
 
     });
 
