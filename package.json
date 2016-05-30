@@ -23,7 +23,8 @@
   },
   "scripts": {
     "test": "node tests/testData.js",
-    "start": "node server.js"
+    "start": "node server.js",
+    "build": "babel crawler -d bin/crawler && babel tests -d bin/tests"
   },
   "devDependencies": {
     "babel-cli": "^6.9.0",
