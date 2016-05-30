@@ -3,42 +3,42 @@
 import  request from "request";
 import  cheerio from "cheerio";
 
-export default class {
+export class Node{
   constructor(link,level,cb){
     this.level = level;
     this.link = link;
     let that = this;
-    request(this.link,(e,r,b)=>{
+    request(that.link,(e,r,b)=>{
       if(e){
         console.log(e);
       }
-      console.log(b);
-      this.$ = cheerio.load(b);
-      this.ViewCount()
-      this.getRelatedNodes();
-      cb(this);
+      that.$ = cheerio.load(b);
+      that.ViewCount()
+      that.getRelatedNodes(cb);
     });
   }
 
   ViewCount ()  {
     let viewCount = this.$('.watch-view-count').html();
     viewCount = viewCount.replace(/,/g,"");
-    console.log(viewCount);
     this.viewCount = parseInt(viewCount);
   }
 
-  getRelatedNodes() {
-    this.nodes = [];
-    const domNodes = this.$(".video-list-item.related-list-item.related-list-item-compact-video");
+  getRelatedNodes(cb) {
+    this.children = [];
+    let domNodes = this.$(".video-list-item.related-list-item.related-list-item-compact-video");
     let that = this;
-    for(var i in Object.keys(domNodes)){
-      this.processNode(this.$(domNodes[i]),((node)=>{
-        this(node,that.level+1,(no)=>{
-          that.nodes.push(no);
-        })
-      }).bind(this));
+    let count = Object.keys(domNodes).length;
+    for(const i in Object.keys(domNodes)){
+      that.processNode(that.$(domNodes[i]),(node)=>{
+        if(node){
+          that.children.push(node);
+          --count||cb(that);
+        }
+        else
+          --count||cb(that);
+      });
     }
-
   }
 
   processNode(node,cb){
@@ -46,7 +46,10 @@ export default class {
       uri: node.find("a.content-link").attr('href')
     }
     if(no.uri)
-    cb("https:www.//youtube.com"+no.uri);
+    cb("https://www.youtube.com"+no.uri);
+    else{
+      cb(undefined);
+    }
   }
 
 }
