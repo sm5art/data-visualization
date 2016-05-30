@@ -3,9 +3,9 @@
 import  request from "request";
 import  cheerio from "cheerio";
 
-
 export default class {
-  constructor(link,cb){
+  constructor(link,level,cb){
+    this.level = level;
     this.link = link;
     let that = this;
     request(this.link,(e,r,b)=>{
@@ -32,9 +32,11 @@ export default class {
     const domNodes = this.$(".video-list-item.related-list-item.related-list-item-compact-video");
     let that = this;
     for(var i in Object.keys(domNodes)){
-      this.processNode(this.$(domNodes[i]),(node)=>{
-          that.nodes.push(node);
-      });
+      this.processNode(this.$(domNodes[i]),((node)=>{
+        this(node,that.level+1,(no)=>{
+          that.nodes.push(no);
+        })
+      }).bind(this));
     }
 
   }
