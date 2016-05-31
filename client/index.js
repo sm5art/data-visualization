@@ -1,14 +1,25 @@
 'use strict';
 
-let nodes = [];
-let links = [];
-for(var i = 0; i < 20; i++){
-    nodes.push({group:String.fromCharCode(i)})
-    links.push({source:i,target:Math.floor(Math.random()*20)})
-}
+import React from 'react';
+import ReactDOM from 'react-dom'
+import d3 from 'd3';
 
+var nodes;
+var links;
 
-
+$.ajax({
+    url: "/list",
+    type: "GET",
+    dataType : "json",
+})
+.done(function(json){
+  nodes = json[0];
+  links = json[1];
+  ReactDOM.render(
+    <ForceLayout width = {$(window).width()} height = {$(window).height()}/>,
+    document.getElementById('root')
+  );
+});
 
 class ForceLayout extends React.Component {
   componentDidMount() {
@@ -33,7 +44,7 @@ class ForceLayout extends React.Component {
       .enter()
       .append('circle')
       .attr('r',(d)=>{
-        return d.group.charCodeAt(0);
+        return d.view/250000;
       })
       .style('stroke','#FFFFFF')
       .style('stroke-width',1.5)
@@ -72,8 +83,3 @@ class ForceLayout extends React.Component {
     return <div style={style} ref="mountPoint" />
   }
 }
-
-ReactDOM.render(
-  <ForceLayout width = {$(window).width()} height = {$(window).height()}/>,
-  document.getElementById('root')
-);

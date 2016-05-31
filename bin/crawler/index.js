@@ -12,71 +12,55 @@ var _node = require('./node');
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
 var Crawler = exports.Crawler = function () {
-  function Crawler(url, depth) {
+  function Crawler(url, depth, cb) {
     _classCallCheck(this, Crawler);
 
-    this.level = 0;
+    this.cb = cb;
     this.nodes = [];
-    this.depth = depth;
     this.links = [];
-    var start = new _node.Node(url, 0, this.recurse.bind(this));
+    var start = new _node.Node(url, 0, depth, this.cycle.bind(this));
   }
 
   _createClass(Crawler, [{
-    key: 'recurse',
-    value: function recurse(nod) {
-      var visited = [];
-      visited.push(nod);
-      while (visited.length > 0) {
-        console.log(visited);
-        var visiting = visited.dequeue();
-        if (visiting.level > this.depth) break;
-        var _iteratorNormalCompletion = true;
-        var _didIteratorError = false;
-        var _iteratorError = undefined;
-
-        try {
-          for (var _iterator = visiting.children[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
-            var i = _step.value;
-
-            visited.push(new _node.Node(i, visiting.level + 1, this.recurse.bind(this)));
-          }
-        } catch (err) {
-          _didIteratorError = true;
-          _iteratorError = err;
-        } finally {
-          try {
-            if (!_iteratorNormalCompletion && _iterator.return) {
-              _iterator.return();
-            }
-          } finally {
-            if (_didIteratorError) {
-              throw _iteratorError;
-            }
-          }
+    key: 'cycle',
+    value: function cycle(nod) {
+      var node = nod;
+      node.parent = 0;
+      var queue = [];
+      this.nodes.push({
+        group: node.link,
+        view: node.viewCount
+      });
+      this.links.push({
+        source: 0,
+        target: 0
+      });
+      queue.push(node);
+      while (queue.length > 0) {
+        var visiting = dequeue(queue);
+        var parentpos = this.nodes.length - 1;
+        var currentpos = this.nodes.length;
+        this.nodes.push({
+          group: visiting.link,
+          view: visiting.viewCount
+        });
+        this.links.push({
+          source: visiting.parent,
+          target: currentpos
+        });
+        for (var i in visiting.children) {
+          visiting.children[i].parent = parentpos;
+          queue.push(visiting.children[i]);
         }
+        console.log(this.nodes, this.links);
       }
+      this.cb(this.nodes, this.links);
     }
   }]);
 
   return Crawler;
 }();
 
-Array.prototype.dequeue = function () {
-  return this.splice(0, 1)[0];
+var dequeue = function dequeue(arr) {
+  return arr.splice(0, 1)[0];
 };
-
-/*
-let visit = [];
-visit.push(nod)
-while(visit.length>0){
-  console.log(visit);
-  let child = visit.dequeue();
-  if(child.level > this.depth){
-    break;
-  }
-  for(let i of child.children){
-    visit.push(i);
-  }
-}
-*/

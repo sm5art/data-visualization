@@ -5,10 +5,11 @@ import  cheerio from "cheerio";
 
 export class Node{
   constructor(link,level,depth,cb){
-    if(level<=depth){
+    if(level<depth){
       this.depth = depth;
       this.link = link;
       let that = this;
+      this.level = level;
       request(that.link,(e,r,b)=>{
         if(e){
           console.log(e);
@@ -18,15 +19,27 @@ export class Node{
         that.getRelatedNodes(cb);
       });
     }
-    else{
-      cb();
+    else {
+      this.depth = depth;
+      this.link = link;
+      this.level = level;
+      let that = this;
+      request(that.link,(e,r,b)=>{
+        if(e){
+          console.log(e);
+        }
+        that.$ = cheerio.load(b);
+        that.ViewCount(cb)
+      });
     }
   }
 
-  ViewCount ()  {
+  ViewCount (cb)  {
     let viewCount = this.$('.watch-view-count').html();
     viewCount = viewCount.replace(/,/g,"");
     this.viewCount = parseInt(viewCount);
+    if(cb)
+      cb(this);
   }
 
   getRelatedNodes(cb) {
@@ -53,11 +66,12 @@ export class Node{
   }
 
   processNode(node,cb){
-    var no = {
-      uri: node.find("a.content-link").attr('href')
+      const uri = node.find("a.content-link").attr('href')
+
+    if(uri){
+      console.log(uri)
+      cb("http://www.youtube.com"+uri);
     }
-    if(no.uri)
-    cb("http://www.youtube.com"+no.uri);
     else{
       cb(undefined);
     }

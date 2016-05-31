@@ -3,43 +3,42 @@ import {Node as node} from './node';
 export class Crawler {
   constructor(url,depth,cb){
     this.cb = cb;
-    this.level = 0;
     this.nodes = [];
-    this.depth = depth;
-    this.count = depth-1;
     this.links = [];
-    this.parents = []
-    var start = new node(url,0,0,this.recurse.bind(this));
+    var start = new node(url,0,depth,this.cycle.bind(this));
   }
-  recurse(nod){
-    let visited = [];
-    let that = this;
-    visited.push(nod);
-    let visiting = dequeue(visited);
-    let parent = {
-      group:nod.link,
-      views:nod.viewCount
-    };
-    this.nodes[visiting.level] = parent;
-    this.links.push({source:nod.parent,target:visiting.level});
-    if(visiting.level < this.depth-1){
-      for(let i in visiting.children){
-        const x = new node(visiting.children[i].url,visiting.level+1,visiting.level,that.recurse.bind(that));
+  cycle(nod){
+    let node = nod;
+    node.parent = 0;
+    let queue = [];
+    this.nodes.push({
+      group:node.link,
+      view:node.viewCount
+    });
+    this.links.push({
+      source:0,
+      target:0
+    });
+    queue.push(node);
+    while(queue.length>0){
+      const visiting = dequeue(queue);
+      const parentpos = this.nodes.length-1;
+      const currentpos = this.nodes.length;
+      this.nodes.push({
+        group:visiting.link,
+        view:visiting.viewCount
+      });
+      this.links.push({
+        source:visiting.parent,
+        target: currentpos
+      })
+      for(const i in visiting.children){
+        visiting.children[i].parent = parentpos;
+        queue.push(visiting.children[i])
       }
+      console.log(this.nodes,this.links)
     }
-    else if(visiting.level < this.depth){
-      let count = visiting.children.length;
-      for(let i in visiting.children){
-        const x = new node(visiting.children[i].url,visiting.level+1,visiting.level,(node)=>{
-          that.nodes.push({
-            group:node.link,
-            views:node.viewCount
-          })
-          that.links.push({source:visiting.level,target:that.nodes.length -1});
-          --count||this.cb(that.nodes,that.links);
-        });
-      }
-    }
+    this.cb(this.nodes,this.links)
   }
 }
 
