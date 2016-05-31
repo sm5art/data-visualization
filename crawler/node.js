@@ -4,18 +4,23 @@ import  request from "request";
 import  cheerio from "cheerio";
 
 export class Node{
-  constructor(link,level,cb){
-    this.level = level;
-    this.link = link;
-    let that = this;
-    request(that.link,(e,r,b)=>{
-      if(e){
-        console.log(e);
-      }
-      that.$ = cheerio.load(b);
-      that.ViewCount()
-      that.getRelatedNodes(cb);
-    });
+  constructor(link,level,depth,cb){
+    if(level<=depth){
+      this.depth = depth;
+      this.link = link;
+      let that = this;
+      request(that.link,(e,r,b)=>{
+        if(e){
+          console.log(e);
+        }
+        that.$ = cheerio.load(b);
+        that.ViewCount()
+        that.getRelatedNodes(cb);
+      });
+    }
+    else{
+      cb();
+    }
   }
 
   ViewCount ()  {
@@ -25,6 +30,7 @@ export class Node{
   }
 
   getRelatedNodes(cb) {
+
     this.children = [];
     let domNodes = this.$(".video-list-item.related-list-item.related-list-item-compact-video");
     let that = this;
@@ -32,11 +38,16 @@ export class Node{
     for(const i in Object.keys(domNodes)){
       that.processNode(that.$(domNodes[i]),(node)=>{
         if(node){
-          that.children.push(node);
+          new Node(node,that.level+1,that.depth,(nod)=>{
+            that.children.push(nod);
+            --count||cb(that);
+          });
+        }
+        else {
           --count||cb(that);
         }
-        else
-          --count||cb(that);
+
+
       });
     }
   }
@@ -46,7 +57,7 @@ export class Node{
       uri: node.find("a.content-link").attr('href')
     }
     if(no.uri)
-    cb("https://www.youtube.com"+no.uri);
+    cb("http://www.youtube.com"+no.uri);
     else{
       cb(undefined);
     }
